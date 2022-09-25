@@ -10,17 +10,15 @@ describe("draw", () => {
 
   const program = anchor.workspace.Draw as Program<Draw>;
 
-  it("can create a new pixel" , async () => {
+  it("can create a new pixel", async () => {
 
     const keypair = anchor.web3.Keypair.generate()
 
-    await program.methods.createPixel(0, 200, 0, 0, 255).accounts({
+    await program.methods.createPixel(10, 10, 0, 0, 255).accounts({
       pixel: keypair.publicKey,
       user: anchorProvider.wallet.publicKey,
       systemProgram: anchor.web3.SystemProgram.programId
-    }).signers([keypair]).rpc().then(() => Promise.reject(new Error('Expected to error!')), (e: AnchorError) => {
-      assert.ok(e.errorLogs.some(log => log.includes('InvalidYCoordinate') && log.includes('The given Y co-ordinate is not between 0-99.')))
-    })
+    }).signers([keypair]).rpc()
 
     const storedPixel = await program.account.pixel.fetch(keypair.publicKey)
     assert.equal(storedPixel.posX, 10)
