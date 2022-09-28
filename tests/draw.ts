@@ -86,7 +86,7 @@ describe("draw", () => {
         user: anchorProvider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .postInstructions([
+      .preInstructions([
         // make the transaction unique
         web3.SystemProgram.transfer({
           fromPubkey: anchorProvider.wallet.publicKey,
