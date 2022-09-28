@@ -43,8 +43,15 @@ pub mod draw {
 pub struct Initialize {}
 
 #[derive(Accounts)]
+#[instruction(pos_x: u8, pos_y: u8)]
 pub struct CreatePixel<'info> {
-    #[account(init, payer=user, space=Pixel::LEN)]
+      #[account(
+        init,
+        payer = user,
+        space = Pixel::LEN,
+        seeds = [b"pixel".as_ref(), [pos_x, pos_y].as_ref()],
+        bump
+    )]
     pub pixel: Account<'info, Pixel>,
     #[account(mut)]
     pub user: Signer<'info>,
