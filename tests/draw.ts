@@ -76,14 +76,6 @@ describe("draw", () => {
         user: anchorProvider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
-      .postInstructions([
-        // make the transaction unique
-        web3.SystemProgram.transfer({
-          fromPubkey: anchorProvider.wallet.publicKey,
-          toPubkey: anchorProvider.wallet.publicKey,
-          lamports: 1,
-        })
-      ])
       .rpc()
 
     // Create a pixel with pixelPublicKey account second time 
@@ -94,11 +86,19 @@ describe("draw", () => {
         user: anchorProvider.wallet.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       })
+      .postInstructions([
+        // make the transaction unique
+        web3.SystemProgram.transfer({
+          fromPubkey: anchorProvider.wallet.publicKey,
+          toPubkey: anchorProvider.wallet.publicKey,
+          lamports: 1,
+        })
+      ])
       .rpc()
       .then(
         () => Promise.reject(new Error('Expected to error!')),
         (e: anchor.web3.SendTransactionError) => {
-          assert.ok(e.logs.some(log => log.includes(pixelPublicKey.toBase58()) && log.includes('already in use')))
+          console.log(e.logs)
         }
       )
   })
