@@ -98,7 +98,6 @@ describe("draw", () => {
       .then(
         () => Promise.reject(new Error('Expected to error!')),
         (e: anchor.web3.SendTransactionError) => {
-          // Log is eg. 'Allocate: account Address { address: 6V4qyzgQ9zdDrjiP74hoaece98gLcRt874JFqTsexrQd, base: None } already in use'
           assert.ok(e.logs.some(log => log.includes(pixelPublicKey.toBase58()) && log.includes('already in use')))
         }
       )
