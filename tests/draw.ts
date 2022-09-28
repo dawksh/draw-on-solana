@@ -98,7 +98,7 @@ describe("draw", () => {
       .then(
         () => Promise.reject(new Error('Expected to error!')),
         (e: anchor.web3.SendTransactionError) => {
-          console.log(e)
+          console.log(e.logs)
         }
       )
   })
