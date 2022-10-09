@@ -36,6 +36,15 @@ pub mod draw {
         pixel.col_g = init_col_g;
         pixel.col_b = init_col_b;
         pixel.bump = *ctx.bumps.get("pixel").unwrap();
+
+        emit!(PixelChanged{
+            pos_x,
+            pos_y,
+            col_r: init_col_r,
+            col_g: init_col_g,
+            col_b: init_col_b
+        });
+
         Ok(())
     }
 
@@ -53,7 +62,15 @@ pub mod draw {
         let pixel = &mut ctx.accounts.pixel;
         pixel.col_r = new_col_r;
         pixel.col_g = new_col_g;
-        pixel.col_b = new_col_b;
+        pixel.col_b = new_col_b;  
+
+        emit!(PixelChanged{
+            pos_x: ctx.accounts.pixel.pos_x,
+            pos_y: ctx.accounts.pixel.pos_y,
+            col_r: new_col_r,
+            col_g: new_col_g,
+            col_b: new_col_b
+        });
 
         Ok(())
     }
@@ -83,7 +100,7 @@ pub struct UpdatePixel<'info> {
     #[account(
         mut,
         seeds = [b"pixel".as_ref(), [pixel.pos_x, pixel.pos_y].as_ref()],
-        bump
+        bump = pixel.bump
     )]
     pub pixel: Account<'info, Pixel>
 }
@@ -120,4 +137,14 @@ const BUMP_LENGTH: usize = 1;
 
 impl Pixel {
     const LEN: usize = DISCRIMINATOR_LENGTH + (2 * POS_LENGTH) + (3 * COL_LENGTH) + BUMP_LENGTH;
+}
+
+
+#[event]
+pub struct PixelChanged {
+    pub pos_x: u8,
+    pub pos_y: u8,
+    pub col_r: u8,
+    pub col_g: u8,
+    pub col_b: u8
 }
