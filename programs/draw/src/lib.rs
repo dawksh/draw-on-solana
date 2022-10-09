@@ -35,6 +35,7 @@ pub mod draw {
         pixel.col_r = init_col_r;
         pixel.col_g = init_col_g;
         pixel.col_b = init_col_b;
+        pixel.bump = *ctx.bumps.get("pixel").unwrap();
         Ok(())
     }
 
@@ -95,6 +96,7 @@ pub struct Pixel {
     pub col_r: u8,
     pub col_g: u8,
     pub col_b: u8,
+    pub bump: u8
 }
 
 #[error_code]
@@ -114,7 +116,8 @@ pub enum ErrorCode{
 const DISCRIMINATOR_LENGTH: usize = 8;
 const POS_LENGTH: usize = 1;
 const COL_LENGTH: usize = 1;
+const BUMP_LENGTH: usize = 1;
 
 impl Pixel {
-    const LEN: usize = DISCRIMINATOR_LENGTH + (2 * POS_LENGTH) + (3 * COL_LENGTH);
+    const LEN: usize = DISCRIMINATOR_LENGTH + (2 * POS_LENGTH) + (3 * COL_LENGTH) + BUMP_LENGTH;
 }
