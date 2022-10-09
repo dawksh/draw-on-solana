@@ -37,6 +37,25 @@ pub mod draw {
         pixel.col_b = init_col_b;
         Ok(())
     }
+
+    pub fn update_pixel(ctx: Context<UpdatePixel>, new_col_r: u8, new_col_g: u8, new_col_b: u8) -> Result<()> {
+        if new_col_r < MIN_COL || new_col_r > MAX_COL {
+            return Err(error!(ErrorCode::InvalidRColor));
+        }
+        if new_col_g < MIN_COL || new_col_g > MAX_COL {
+            return Err(error!(ErrorCode::InvalidGColor));
+        }
+        if new_col_b < MIN_COL || new_col_b > MAX_COL {
+            return Err(error!(ErrorCode::InvalidBColor));
+        }
+
+        let pixel = &mut ctx.accounts.pixel;
+        pixel.col_r = new_col_r;
+        pixel.col_g = new_col_g;
+        pixel.col_b = new_col_b;
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -57,6 +76,17 @@ pub struct CreatePixel<'info> {
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
 }
+
+#[derive(Accounts)]
+pub struct UpdatePixel<'info> {
+    #[account(
+        mut,
+        seeds = [b"pixel".as_ref(), [pixel.pos_x, pixel.pos_y].as_ref()],
+        bump
+    )]
+    pub pixel: Account<'info, Pixel>
+}
+
 
 #[account]
 pub struct Pixel {

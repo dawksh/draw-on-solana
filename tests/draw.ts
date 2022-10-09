@@ -1,6 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program, AnchorError, web3 } from "@project-serum/anchor";
 import { assert } from "chai";
+import { Connection, clusterApiUrl } from '@solana/web3.js'
 import { Draw } from "../target/types/draw";
 
 describe("draw", () => {
@@ -61,32 +62,33 @@ describe("draw", () => {
 
 
   it("Does not allow creating the same pixel twice", async () => {
-    const x = 10
-    const y = 10
+    const x = 20
+    const y = 20
 
-    const [pixelPublicKey] = anchor.web3.PublicKey.findProgramAddressSync(
+    const [pixelPublicKey] = web3.PublicKey.findProgramAddressSync(
       [Buffer.from("pixel"), Buffer.from([x, y])],
       program.programId,
     )
-    // Create a pixel with pixelPublicKey account first time 
+
+    // Create the pixel: this should pass
     await program.methods
       .createPixel(x, y, 0, 0, 255)
       .accounts({
         pixel: pixelPublicKey,
         user: anchorProvider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
+        systemProgram: web3.SystemProgram.programId,
       })
       .rpc()
 
-    // Create a pixel with pixelPublicKey account second time 
+    // Create the same pixel: this should fail
     await program.methods
       .createPixel(x, y, 0, 0, 255)
       .accounts({
         pixel: pixelPublicKey,
         user: anchorProvider.wallet.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
+        systemProgram: web3.SystemProgram.programId,
       })
-      .preInstructions([
+      .postInstructions([
         // make the transaction unique
         web3.SystemProgram.transfer({
           fromPubkey: anchorProvider.wallet.publicKey,
@@ -97,8 +99,35 @@ describe("draw", () => {
       .rpc()
       .then(
         () => Promise.reject(new Error('Expected to error!')),
-        (e: anchor.web3.SendTransactionError) => {
-          console.log(e)
+        (e: web3.SendTransactionError) => {
+          // Log is eg. 'Allocate: account Address { address: 6V4qyzgQ9zdDrjiP74hoaece98gLcRt874JFqTsexrQd, base: None } already in use'
+          assert.ok(e.logs.some(log => log.includes(pixelPublicKey.toBase58()) && log.includes('already in use')))
+        }
+      )
+  })
+
+  it("Does not allow passing an incorrect address", async () => {
+    // Generate the PDA for (0, 0)
+    const [pixelPublicKey] = web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("pixel"), Buffer.from([0, 0])],
+      program.programId,
+    )
+
+    // Attempt to use it to create (30, 30)
+    await program.methods
+      .createPixel(30, 30, 0, 0, 255)
+      .accounts({
+        pixel: pixelPublicKey,
+        user: anchorProvider.wallet.publicKey,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .rpc()
+      .then(
+        () => Promise.reject(new Error('Expected to error!')),
+        (e: web3.SendTransactionError) => {
+          // Log is eg. '5NbE1G4B95BMHrz94jLk3Q1GivRgh9Eyj8mtHss3sVZA's signer privilege escalated'
+          const expectedError = `${pixelPublicKey.toBase58()}'s signer privilege escalated`
+          assert.ok(e.logs.some(log => log === expectedError))
         }
       )
   })
