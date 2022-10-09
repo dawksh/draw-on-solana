@@ -131,4 +131,41 @@ describe("draw", () => {
         }
       )
   })
+
+  it("Can update color of a pixel", async () => {
+    const x = 30;
+    const y = 40;
+
+    // derive PDA
+    let [pixelPublicKey] = web3.PublicKey.findProgramAddressSync([Buffer.from("pixel"), Buffer.from([x, y])], program.programId)
+
+    // create pixel
+
+    await program.methods.createPixel(x, y, 0, 0, 255).accounts({
+      pixel: pixelPublicKey,
+      user: anchorProvider.wallet.publicKey,
+      systemProgram: web3.SystemProgram.programId
+    }).rpc()
+
+    // try updating pixel
+    await program.methods.updatePixel(255, 0, 0).accounts({
+      pixel: pixelPublicKey,
+    }).rpc()
+
+    const storedPixel = await program.account.pixel.fetch(pixelPublicKey);
+
+    const posX = storedPixel.posX;
+    const posY = storedPixel.posY;
+    const colR = storedPixel.colR;
+    const colG = storedPixel.colG;
+    const colB = storedPixel.colB;
+
+    assert.equal(posX, x);
+    assert.equal(posY, y);
+    assert.equal(colR, 255);
+    assert.equal(colG, 0);
+    assert.equal(colB, 0);
+  })
+
+
 });
